@@ -47,16 +47,9 @@ pipeline {
                     # Create new deployment
                     kubectl create deployment cw2-deployment --image=acaldw301/cw2-server:latest &&
                     kubectl scale deployment cw2-deployment --replicas=3 &&
-                    
+
                     # Expose the service
-                    kubectl expose deployment cw2-deployment --type=NodePort --port=8080 &&
-                    
-                    # Retrieve NodePort and Minikube IP dynamically
-                    NODE_PORT=\$(kubectl get service cw2-deployment -o go-template='{{(index .spec.ports 0).nodePort}}') &&
-                    MINIKUBE_IP=\$(minikube ip) &&
-                    
-                    # Test the deployment
-                    curl http://\$MINIKUBE_IP:\$NODE_PORT
+                    kubectl expose deployment cw2-deployment --type=NodePort --port=8080
                     "
                     '''
                 }
