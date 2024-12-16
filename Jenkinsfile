@@ -42,6 +42,7 @@ pipeline {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ubuntu@50.19.2.165 "
                     kubectl set image deployment/cw2-deployment cw2-server=acaldw301/cw2-server:latest --record &&
+                    kubectl scale deployment cw2-deployment --replicas=3 &&
                     kubectl rollout status deployment/cw2-deployment
             "
             '''
