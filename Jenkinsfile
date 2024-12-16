@@ -38,13 +38,15 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                sshagent([SSH_CREDENTIALS_ID]) {
+                sshagent(['production-server-ssh']) {
                     sh '''
-                    kubectl set image deployment/cw2-deployment cw2-server=${DOCKER_IMAGE}:latest --record
+                    ssh -o StrictHostKeyChecking=no ubuntu@50.19.2.165 "
+                    kubectl set image deployment/cw2-deployment cw2-server=acaldw301/cw2-server:latest --record &&
                     kubectl rollout status deployment/cw2-deployment
-                    '''
-                }
-            }
+            "
+            '''
         }
+    }
+}
     }
 }
