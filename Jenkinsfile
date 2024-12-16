@@ -34,28 +34,35 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
-            steps {
-                sshagent(['production-server-ssh']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@<production-server-ip> "
-                    # Delete existing service and deployment
-                    kubectl delete service cw2-deployment --ignore-not-found &&
-                    kubectl delete deployment cw2-deployment --ignore-not-found &&
-                    
-                    # Create deployment and expose service
-                    kubectl create deployment cw2-deployment --image=${DOCKER_IMAGE} &&
-                    kubectl scale deployment cw2-deployment --replicas=3 &&
-                    kubectl expose deployment cw2-deployment --type=NodePort --port=8080 &&
-                    
-                    # Retrieve the NodePort and store it for testing
-                    export NODE_PORT=\$(kubectl get service cw2-deployment -o go-template='{{(index .spec.ports 0).nodePort}}') &&
-                    
-                    # Verify the application is running
-                    curl http://$(minikube ip):\$NODE_PORT
-                    "
-                    '''
-                }
+          stage('Deploy to Kubernetes') {
+    steps {
+        sshagent(['production-server-ssh']) {
+            sh '''
+            ssh -o StrictHostKeyChecking=no ubuntu@50.19.2.165 "
+            
+            # Delete existing service and deployment
+            kubectl delete service cw2-deployment --ignore-not-found &&
+            kubectl delete deployment cw2-deployment --ignore-not-found &&
+            
+            # Create new deployment
+            kubectl create deployment cw2-deployment --image=acaldw301/cw2-server:latest &&
+            kubectl scale deployment cw2-deployment --replicas=3 &&
+            
+            # Expose the service
+            kubectl expose deployment cw2-deployment --type=NodePort --port=8080 &&
+            
+            # Retrieve NodePort and Minikube IP dynamically
+            NODE_PORT=\$(kubectl get service cw2-deployment -o go-template='{{(index .spec.ports 0).nodePort}}') &&
+            MINIKUBE_IP=\$(minikube ip) &&
+            
+            # Test the deployment
+            curl http://\$MINIKUBE_IP:\$NODE_PORT
+            "
+            '''
+        }
+    }
+}
+
             }
         }
     }
